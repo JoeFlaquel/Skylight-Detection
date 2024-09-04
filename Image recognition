@@ -1,0 +1,37 @@
+import requests
+
+def frange(start, stop, step):
+    """Range function for floating numbers."""
+    while start < stop:
+        yield round(start, 6)
+        start += step
+
+def generate_coordinates(north, south, east, west, interval=0.01):
+    """Generate a grid of coordinates within the given boundaries."""
+    latitudes = [lat for lat in frange(south, north, interval)]
+    longitudes = [lon for lon in frange(west, east, interval)]
+
+    return [(lat, lon) for lat in latitudes for lon in longitudes]
+
+def fetch_satellite_image(latitude, longitude, api_key, zoom=21, size='600x600'):
+    url = f"https://maps.googleapis.com/maps/api/staticmap?center={latitude},{longitude}&zoom={zoom}&size={size}&maptype=satellite&key={api_key}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(f"satellite_image_{latitude}_{longitude}.jpg", 'wb') as file:
+            file.write(response.content)
+
+# Define the boundaries for Barrington, RI (these are approximate)
+north = 41.74238
+south = 41.73741
+east = -71.30486
+west = -71.33014
+
+# Generate coordinates, set interval to lower number for more detail .001o
+coordinates = generate_coordinates(north, south, east, west, interval=0.0004)
+
+# Google Maps API Key
+api_key = 'AIzaSyCfuKm37KspAEE8MP8zq3IQgiZWUkkrOSM'
+
+# Fetch images for each coordinate
+for lat, lon in coordinates:
+    fetch_satellite_image(lat, lon, api_key)
